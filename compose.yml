@@ -1,0 +1,31 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: tms_app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    env_file:
+      - .env
+
+  db:
+    image: postgres:16-alpine
+    container_name: tms_db
+    environment:
+      POSTGRES_USER: tms_user
+      POSTGRES_PASSWORD: tms_password
+      POSTGRES_DB: tms
+    ports:
+      - "5432:5432"
+    volumes:
+      - tms_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "tms_user"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+volumes:
+  tms_postgres_data:

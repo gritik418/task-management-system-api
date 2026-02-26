@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node --env-file=.env dist/index.js",
+    "start": "node --env-file=.env dist/src/index.js",
     "build": "tsc",
     "dev": "tsc-watch --onSuccess \"npm run start\""
   },
@@ -14,6 +14,7 @@
   "license": "ISC",
   "type": "module",
   "devDependencies": {
+    "@types/bcrypt": "^6.0.0",
     "@types/express": "^5.0.6",
     "@types/node": "^25.3.1",
     "@types/pg": "^8.16.0",
@@ -24,7 +25,9 @@
   "dependencies": {
     "@prisma/adapter-pg": "^7.4.1",
     "@prisma/client": "^7.4.1",
+    "bcrypt": "^6.0.0",
     "express": "^5.2.1",
-    "pg": "^8.19.0"
+    "pg": "^8.19.0",
+    "zod": "^4.3.6"
   }
 }
