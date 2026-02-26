@@ -214,7 +214,55 @@ export const refreshToken = async (req: Request, res: Response) => {
       accessToken,
     });
   } catch (error) {
-    console.log("err", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error.",
+    });
+  }
+};
+
+export const logout = async (req: Request, res: Response) => {
+  try {
+    const refreshToken = req.cookies.refreshToken;
+
+    if (!refreshToken) {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized.",
+      });
+    }
+
+    const existingRefreshToken = await prisma.refreshToken.findUnique({
+      where: { token: refreshToken },
+    });
+
+    if (!existingRefreshToken) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid refresh token.",
+      });
+    }
+
+    const isRefreshTokenValid = verifyRefreshToken(refreshToken);
+
+    if (!isRefreshTokenValid) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid refresh token.",
+      });
+    }
+
+    await prisma.refreshToken.delete({
+      where: { token: existingRefreshToken.token },
+    });
+
+    res.clearCookie("refreshToken", cookieOptions);
+
+    return res.status(200).json({
+      success: true,
+      message: "Logged out successfully.",
+    });
+  } catch (error) {
     return res.status(500).json({
       success: false,
       message: "Internal server error.",
