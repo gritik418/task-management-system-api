@@ -6,6 +6,7 @@ import { compareValue, hashValue } from "../utils/hash.js";
 import {
   generateAccessToken,
   generateRefreshToken,
+  verifyRefreshToken,
   type TokenPayload,
 } from "../utils/token.js";
 import { loginSchema, registerSchema } from "../validations/auth.validation.js";
@@ -70,7 +71,6 @@ export const register = async (req: Request, res: Response) => {
     return res.status(500).json({
       success: false,
       message: "Internal server error.",
-      error,
     });
   }
 };
@@ -125,6 +125,14 @@ export const login = async (req: Request, res: Response) => {
     const accessToken = generateAccessToken(payload);
     const refreshToken = generateRefreshToken(payload);
 
+    await prisma.refreshToken.create({
+      data: {
+        token: refreshToken,
+        userId: user.id,
+        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      },
+    });
+
     res.cookie("refreshToken", refreshToken, cookieOptions);
 
     return res.status(200).json({
@@ -141,7 +149,75 @@ export const login = async (req: Request, res: Response) => {
     return res.status(500).json({
       success: false,
       message: "Internal server error.",
-      error,
+    });
+  }
+};
+
+export const refreshToken = async (req: Request, res: Response) => {
+  try {
+    const refreshToken = req.cookies.refreshToken;
+
+    if (!refreshToken) {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized.",
+      });
+    }
+
+    const existingRefreshToken = await prisma.refreshToken.findUnique({
+      where: { token: refreshToken },
+    });
+
+    if (!existingRefreshToken) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid refresh token.",
+      });
+    }
+
+    const payload = verifyRefreshToken(refreshToken);
+
+    if (!payload) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid refresh token.",
+      });
+    }
+
+    await prisma.refreshToken.delete({
+      where: { token: existingRefreshToken.token },
+    });
+
+    const newRefreshToken = generateRefreshToken({
+      id: payload.id,
+      email: payload.email,
+    });
+
+    await prisma.refreshToken.create({
+      data: {
+        token: newRefreshToken,
+        userId: payload.id,
+        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      },
+    });
+
+    const accessToken = generateAccessToken({
+      id: payload.id,
+      email: payload.email,
+    });
+
+    res.cookie("refreshToken", newRefreshToken, cookieOptions);
+
+    return res.status(200).json({
+      success: true,
+      message: "Logged in successfully.",
+      accessToken,
+    });
+  } catch (error) {
+    console.log("err", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error.",
     });
   }
 };
