@@ -6,3 +6,10 @@ export const hashValue = async (
 ): Promise<string> => {
   return bcrypt.hash(value, rounds);
 };
+
+export const compareValue = async (
+  value: string,
+  hash: string,
+): Promise<boolean> => {
+  return bcrypt.compare(value, hash);
+};
