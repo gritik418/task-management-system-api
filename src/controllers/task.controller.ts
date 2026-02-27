@@ -147,3 +147,49 @@ export const getTasks = async (req: Request, res: Response) => {
     });
   }
 };
+
+export const getTaskDetails = async (req: Request, res: Response) => {
+  try {
+    const userId = req.user.id;
+    const { taskId } = req.params;
+
+    if (!taskId || typeof taskId !== "string") {
+      return res.status(400).json({
+        success: false,
+        message: "Task ID is required.",
+      });
+    }
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized.",
+      });
+    }
+
+    const task = await prisma.task.findFirst({
+      where: {
+        id: taskId,
+        userId,
+      },
+    });
+
+    if (!task) {
+      return res.status(404).json({
+        success: false,
+        message: "Task not found.",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Task retrieved successfully.",
+      task,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error.",
+    });
+  }
+};
