@@ -6,6 +6,7 @@ import {
 } from "../validations/task.validation.js";
 import z from "zod";
 import prisma from "../lib/prisma.js";
+import { TaskStatus } from "@prisma/client";
 
 export const addTask = async (req: Request, res: Response) => {
   try {
@@ -312,6 +313,61 @@ export const deleteTask = async (req: Request, res: Response) => {
     return res.status(200).json({
       success: true,
       message: "Task deleted successfully.",
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error.",
+    });
+  }
+};
+
+export const toggleTaskStatus = async (req: Request, res: Response) => {
+  try {
+    const userId = req.user.id;
+    const { taskId } = req.params;
+
+    if (!taskId || typeof taskId !== "string") {
+      return res.status(400).json({
+        success: false,
+        message: "Task ID is required.",
+      });
+    }
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized.",
+      });
+    }
+
+    const existingTask = await prisma.task.findFirst({
+      where: {
+        id: taskId,
+        userId: req.user.id,
+      },
+    });
+
+    if (!existingTask) {
+      return res.status(404).json({
+        success: false,
+        message: "Task not found.",
+      });
+    }
+
+    await prisma.task.update({
+      where: { id: existingTask.id },
+      data: {
+        status:
+          existingTask.status === TaskStatus.TODO
+            ? TaskStatus.COMPLETED
+            : TaskStatus.TODO,
+      },
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Task status updated successfully.",
     });
   } catch (error) {
     return res.status(500).json({

@@ -5,6 +5,7 @@ import {
   deleteTask,
   getTaskDetails,
   getTasks,
+  toggleTaskStatus,
   updateTask,
 } from "../controllers/task.controller.js";
 
@@ -19,5 +20,7 @@ router.get("/:taskId", authenticate, getTaskDetails);
 router.patch("/:taskId", authenticate, updateTask);
 
 router.delete("/:taskId", authenticate, deleteTask);
+
+router.patch("/:taskId/toggle", authenticate, toggleTaskStatus);
 
 export default router;
