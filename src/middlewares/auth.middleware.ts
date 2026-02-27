@@ -22,7 +22,7 @@ const authenticate = async (
     if (!authHeader)
       return res.status(401).json({
         success: false,
-        message: "Please login.",
+        message: "Unauthorized.",
       });
 
     const [scheme, token] = authHeader.split(" ");
