@@ -47,7 +47,7 @@ export const addTask = async (req: Request, res: Response) => {
         title,
         description: description || "",
         userId,
-        isCompleted: false,
+        status: "TODO",
       },
     });
 
@@ -55,6 +55,42 @@ export const addTask = async (req: Request, res: Response) => {
       success: true,
       message: "Task added successfully.",
       task,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error.",
+    });
+  }
+};
+
+export const getTasks = async (req: Request, res: Response) => {
+  try {
+    const userId = req.user.id;
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized.",
+      });
+    }
+
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized.",
+      });
+    }
+
+    const tasks = await prisma.task.findMany({
+      where: { userId },
+    });
+
+    return res.status(201).json({
+      success: true,
+      message: "Task added successfully.",
+      tasks,
     });
   } catch (error) {
     return res.status(500).json({

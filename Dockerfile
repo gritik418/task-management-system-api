@@ -10,4 +10,4 @@ COPY . .
 
 EXPOSE 8000
 
-CMD ["sh", "-c", "npx prisma generate && npx prisma db push && npm run dev"]
+CMD ["sh", "-c", "npx prisma generate && npx prisma db push --accept-data-loss && npm run dev"]

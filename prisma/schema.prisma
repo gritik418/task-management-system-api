@@ -26,16 +26,22 @@ model User {
 }
 
 model Task {
-  id          String  @id @default(uuid())
+  id          String     @id @default(uuid())
   title       String
   description String?
-  isCompleted Boolean @default(false)
+  status      TaskStatus @default(TODO)
   userId      String
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  COMPLETED
 }
 
 model RefreshToken {
