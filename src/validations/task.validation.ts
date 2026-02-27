@@ -8,6 +8,22 @@ export const createTaskSchema = z.object({
   description: z.string().max(1000, "Description too long").optional(),
 });
 
+export const updateTaskSchema = z
+  .object({
+    title: z
+      .string()
+      .min(1, "Title is required")
+      .max(150, "Title must not exceed 150 characters")
+      .optional(),
+    description: z.string().max(1000, "Description too long").optional(),
+  })
+  .refine(
+    (data) => data.title !== undefined || data.description !== undefined,
+    {
+      message: "At least one field must be provided",
+    },
+  );
+
 export const getTasksQuerySchema = z.object({
   page: z.coerce.number().min(1).default(1),
   limit: z.coerce.number().min(1).max(100).default(10),
