@@ -271,3 +271,52 @@ export const updateTask = async (req: Request, res: Response) => {
     });
   }
 };
+
+export const deleteTask = async (req: Request, res: Response) => {
+  try {
+    const userId = req.user.id;
+    const { taskId } = req.params;
+
+    if (!taskId || typeof taskId !== "string") {
+      return res.status(400).json({
+        success: false,
+        message: "Task ID is required.",
+      });
+    }
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized.",
+      });
+    }
+
+    const existingTask = await prisma.task.findFirst({
+      where: {
+        id: taskId,
+        userId: req.user.id,
+      },
+    });
+
+    if (!existingTask) {
+      return res.status(404).json({
+        success: false,
+        message: "Task not found.",
+      });
+    }
+
+    await prisma.task.delete({
+      where: { id: taskId },
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Task deleted successfully.",
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error.",
+    });
+  }
+};
