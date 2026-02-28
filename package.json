@@ -7,6 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node --env-file=.env dist/src/index.js",
     "build": "tsc",
+    "postinstall": "prisma generate",
     "dev": "tsc-watch --onSuccess \"npm run start\""
   },
   "keywords": [],
