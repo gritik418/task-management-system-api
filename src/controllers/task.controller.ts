@@ -45,14 +45,14 @@ export const addTask = async (req: Request, res: Response) => {
       });
     }
 
-    const { title, description } = result.data;
+    const { title, description, status } = result.data;
 
     const task = await prisma.task.create({
       data: {
         title,
         description: description || "",
         userId,
-        status: "TODO",
+        status: status || "TODO",
       },
     });
 
@@ -123,6 +123,7 @@ export const getTasks = async (req: Request, res: Response) => {
         where,
         skip,
         take: limit,
+        orderBy: { updatedAt: "desc" },
       }),
       prisma.task.count({
         where,
@@ -234,12 +235,13 @@ export const updateTask = async (req: Request, res: Response) => {
       });
     }
 
-    const { description, title } = result.data;
+    const { description, title, status } = result.data;
 
     let updatedData: Record<string, string> = {};
 
     if (title) updatedData.title = title;
     if (description) updatedData.description = description;
+    if (status) updatedData.status = status;
 
     const existingTask = await prisma.task.findFirst({
       where: {

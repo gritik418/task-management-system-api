@@ -1,3 +1,4 @@
+import { TaskStatus } from "@prisma/client";
 import z from "zod";
 
 export const createTaskSchema = z.object({
@@ -6,6 +7,7 @@ export const createTaskSchema = z.object({
     .min(1, "Title is required")
     .max(150, "Title must not exceed 150 characters"),
   description: z.string().max(1000, "Description too long").optional(),
+  status: z.enum(TaskStatus).default("TODO").optional(),
 });
 
 export const updateTaskSchema = z
@@ -16,6 +18,8 @@ export const updateTaskSchema = z
       .max(150, "Title must not exceed 150 characters")
       .optional(),
     description: z.string().max(1000, "Description too long").optional(),
+
+    status: z.enum(TaskStatus).optional(),
   })
   .refine(
     (data) => data.title !== undefined || data.description !== undefined,

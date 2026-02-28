@@ -1,4 +1,4 @@
-import type { Request, Response } from "express";
+import { response, type Request, type Response } from "express";
 import z from "zod";
 import { cookieOptions } from "../constants/cookie.js";
 import prisma from "../lib/prisma.js";
@@ -188,6 +188,17 @@ export const refreshToken = async (req: Request, res: Response) => {
       where: { token: existingRefreshToken.token },
     });
 
+    const user = await prisma.user.findUnique({
+      where: { id: payload.id },
+    });
+
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid refresh token.",
+      });
+    }
+
     const newRefreshToken = generateRefreshToken({
       id: payload.id,
       email: payload.email,
@@ -212,6 +223,11 @@ export const refreshToken = async (req: Request, res: Response) => {
       success: true,
       message: "Logged in successfully.",
       accessToken,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+      },
     });
   } catch (error) {
     return res.status(500).json({
